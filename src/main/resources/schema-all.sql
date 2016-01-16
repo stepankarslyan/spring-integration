@@ -1,0 +1,9 @@
+DROP TABLE EMPLOYEE;
+
+CREATE TABLE EMPLOYEE  (
+    ID int,
+    FIRSTNAME varchar(20),
+    LASTNAME varchar(20)
+);
+
+
