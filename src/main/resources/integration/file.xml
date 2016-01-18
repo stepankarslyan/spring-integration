@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"	
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xmlns:batch-integrate="http://www.springframework.org/schema/batch-integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed-4.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file-4.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/batch-integration http://www.springframework.org/schema/batch-integration/spring-batch-integration.xsd">
+
+	<import resource="../batch/jobs/employee_job.xml"/>
+
+    <int:channel id="inputFileChannel"></int:channel>
+    <int:channel id="jobRequestChannel"></int:channel>
+    <int:channel id="jobTriggeringStatusChannel"></int:channel>
+    
+    <file:inbound-channel-adapter 
+    	directory="/home/stepan/csv/"
+    	filename-pattern="*.csv"
+    	channel="inputFileChannel">
+    	<int:poller fixed-rate="1000"></int:poller>
+   	</file:inbound-channel-adapter>
+   	
+   	<int:transformer input-channel="inputFileChannel"
+		output-channel="jobRequestChannel">
+		<bean class="blog.FileMessageToJobRequest">
+			<property name="job" ref="personJob"/>
+			<property name="fileParameterName" value="input.file.name"/>
+		</bean>
+	</int:transformer>
+	
+	<batch-integrate:job-launching-gateway request-channel="jobRequestChannel"
+		reply-channel="jobTriggeringStatusChannel"/>
+		
+	<int:logging-channel-adapter channel="jobTriggeringStatusChannel"/>
+
+</beans>
